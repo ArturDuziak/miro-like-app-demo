@@ -3,15 +3,15 @@ import { Home } from './Home';
 import { useState } from 'react';
 
 function App() {
-  const [username, setUsername] = useState('');
+  const [loginData, setLoginData] = useState({ username: '', roomId: '' });
 
-  return username ? (
+  return loginData.username && loginData.roomId ? (
     <>
-      <Home username={username} />
+      <Home username={loginData.username} roomId={loginData.roomId} />
     </>
   ) : (
     <>
-      <Login onSubmit={setUsername} />
+      <Login onSubmit={setLoginData} />
     </>
   );
 }

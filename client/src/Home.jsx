@@ -5,11 +5,11 @@ import useMousePosition from './hooks/useMousePosition';
 import throttle from 'lodash.throttle';
 
 // eslint-disable-next-line react/prop-types
-export function Home({ username }) {
+export function Home({ username, roomId }) {
   const socketUrl = 'ws://localhost:5005/websockets';
 
   const { sendJsonMessage, lastMessage, readyState } = useWebSocket(socketUrl, {
-    queryParams: { username },
+    queryParams: { username, room_id: roomId },
   });
   const mousePosition = useMousePosition();
 
