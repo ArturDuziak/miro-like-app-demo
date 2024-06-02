@@ -14,9 +14,21 @@ export function Home({ username, roomId }) {
   const mousePosition = useMousePosition();
 
   const [users, setUsers] = useState([]);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatMessage, setChatMessage] = useState('');
 
   const THROTTLE = 10;
   const throttledSendJsonMessage = useRef(throttle(sendJsonMessage, THROTTLE));
+
+  const handleMessageSend = () => {
+    sendJsonMessage({
+      action: 'chat_message',
+      payload: { message: chatMessage },
+    });
+
+    setChatMessages((prev) => [...prev, { username, message: chatMessage }]);
+    setChatMessage('');
+  };
 
   useEffect(() => {
     if (mousePosition.x && mousePosition.y) {
@@ -30,13 +42,18 @@ export function Home({ username, roomId }) {
 
   useEffect(() => {
     if (lastMessage) {
-      const users = JSON.parse(lastMessage.data);
+      const { action, payload } = JSON.parse(lastMessage.data);
+      console.log('action', action, 'payload', payload);
 
-      console.log('users', users);
+      if (action === 'update_cursor') {
+        const dataArray = Object.entries(payload).map(([id, value]) => ({ id, ...value }));
 
-      const dataArray = Object.entries(users).map(([id, value]) => ({ id, ...value }));
-
-      setUsers(dataArray);
+        setUsers(dataArray);
+      } else if (action === 'chat_message') {
+        setChatMessages((prev) => [...prev, payload]);
+      } else {
+        console.log('Unknown action', action);
+      }
     }
   }, [lastMessage, username]);
 
@@ -51,6 +68,41 @@ export function Home({ username, roomId }) {
           <Cursor key={user.id} point={[user.state.x, user.state.y]} username={user.username} />
         );
       })}
+      <div style={
+        {
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          width: '100%',
+          padding: '10px',
+          background: 'white',
+          borderTop: '1px solid black',
+        }
+
+      }>
+        <div>
+          {chatMessages.map((message, index) => {
+            return (
+              <p key={index}>
+                <b>{message.username}</b>: {message.message}
+              </p>
+            );
+          })}
+        </div>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleMessageSend({ username, roomId });
+          }}
+        >
+          <input
+            type="text"
+            value={chatMessage}
+            placeholder="chatMessage"
+            onChange={(e) => setChatMessage(e.target.value)}
+          />
+        </form>
+      </div>
     </>
   );
 }

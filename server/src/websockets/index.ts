@@ -24,25 +24,28 @@ export default async (expressServer) => {
             return acc;
           }, {});
 
-          const message = JSON.stringify(usersInRoom);
+          const message = JSON.stringify({
+            action: 'update_cursor',
+            payload: usersInRoom,
+          });
           client.send(message);
         }
       });
     }
   }
 
-  const broadcastUserMessage = (chatMessage, socket, roomId) => {
+  const broadcastUserMessage = (chatMessage, senderUuid, socket, roomId) => {
     if (rooms[roomId]) {
       rooms[roomId].forEach((userUuid) => {
         const client = connections[userUuid];
         if (client !== socket && client.readyState === WebSocket.OPEN) {
-          const username = users[userUuid].username;
+          const { username } = users[senderUuid];;
 
           const messageResponse = JSON.stringify({
             action: 'chat_message',
             payload: {
               message: chatMessage,
-              user_id: userUuid,
+              user_id: senderUuid,
               username,
             }
           });
@@ -66,7 +69,7 @@ export default async (expressServer) => {
 
     // Save chat message to history
 
-    broadcastUserMessage(message, websocketConnection, roomId);
+    broadcastUserMessage(message, userUuid, websocketConnection, roomId);
   }
 
   const handleMessages = ({ message, userUuid, roomId, websocketConnection }) => {
@@ -89,7 +92,7 @@ export default async (expressServer) => {
 
     rooms[roomId].splice(rooms[roomId].indexOf(userUuid), 1);
 
-    if(rooms[roomId].length === 0) {
+    if (rooms[roomId].length === 0) {
       delete rooms[roomId];
     }
 
