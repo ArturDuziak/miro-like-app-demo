@@ -83,7 +83,7 @@ export function Home({ username, roomId }) {
         <div>
           {chatMessages.map((message, index) => {
             return (
-              <p key={index}>
+              <p key={index} data-testid="chat-message">
                 <b>{message.username}</b>: {message.message}
               </p>
             );
