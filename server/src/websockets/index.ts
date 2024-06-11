@@ -1,6 +1,7 @@
-import WebSocket from 'ws';
+import WebSocket, { RawData } from 'ws';
 import url from 'url';
 import { v4 as uuidv4 } from 'uuid';
+import { ChatMessagePayload, UpdateCursorPayload, WebSocketActions, WebSocketMessage } from './interfaces';
 
 export default async (expressServer) => {
   const websocketServer = new WebSocket.Server({
@@ -25,7 +26,7 @@ export default async (expressServer) => {
           }, {});
 
           const message = JSON.stringify({
-            action: 'update_cursor',
+            action: WebSocketActions.UPDATE_CURSOR,
             payload: usersInRoom,
           });
           client.send(message);
@@ -42,7 +43,7 @@ export default async (expressServer) => {
           const { username } = users[senderUuid];;
 
           const messageResponse = JSON.stringify({
-            action: 'chat_message',
+            action: WebSocketActions.CHAT_MESSAGE,
             payload: {
               message: chatMessage,
               user_id: senderUuid,
@@ -56,7 +57,7 @@ export default async (expressServer) => {
     }
   }
 
-  const handleUpdateCursor = ({ payload, userUuid, roomId, websocketConnection }) => {
+  const handleUpdateCursor = ({ payload, userUuid, roomId, websocketConnection }: { payload: UpdateCursorPayload, userUuid: string, roomId: string, websocketConnection: WebSocket }) => {
     const { x, y } = payload;
 
     users[userUuid].state = { x, y };
@@ -64,7 +65,7 @@ export default async (expressServer) => {
     broadcastUsersState(websocketConnection, roomId);
   }
 
-  const handleChatMessage = ({ payload, userUuid, roomId, websocketConnection }) => {
+  const handleChatMessage = ({ payload, userUuid, roomId, websocketConnection }: { payload: ChatMessagePayload, userUuid: string, roomId: string, websocketConnection: WebSocket }) => {
     const { message } = payload;
 
     // Save chat message to history
@@ -72,13 +73,13 @@ export default async (expressServer) => {
     broadcastUserMessage(message, userUuid, websocketConnection, roomId);
   }
 
-  const handleMessages = ({ message, userUuid, roomId, websocketConnection }) => {
-    const { action, payload } = JSON.parse(message);
+  const handleMessages = ({ message, userUuid, roomId, websocketConnection }: { message: RawData, userUuid: string, roomId: string, websocketConnection: WebSocket }) => {
+    const { action, payload } = JSON.parse(message.toString()) as WebSocketMessage;
 
     switch (action) {
-      case 'update_cursor':
+      case WebSocketActions.UPDATE_CURSOR:
         return handleUpdateCursor({ payload, userUuid, websocketConnection, roomId });
-      case 'chat_message':
+      case WebSocketActions.CHAT_MESSAGE:
         return handleChatMessage({ payload, userUuid, websocketConnection, roomId });
       default:
         console.warn('Unknown action:', action);
@@ -87,6 +88,8 @@ export default async (expressServer) => {
   };
 
   const handleClose = ({ userUuid, websocketConnection, roomId }) => {
+    console.log(`User ${users[userUuid].username} disconnected with UUID ${userUuid}.`);
+
     delete connections[userUuid];
     delete users[userUuid];
 
