@@ -6,6 +6,9 @@ declare global {
       user?: {
         role: string;
       };
+      tokenInfo?: {
+        refreshed: boolean;
+      };
     }
   }
 }

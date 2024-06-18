@@ -20,6 +20,11 @@ model User {
   role Role @default(USER)
 }
 
+model JwtRefreshToken {
+  token String @id @unique
+  user_id Int
+}
+
 enum Role {
   ADMIN
   USER
