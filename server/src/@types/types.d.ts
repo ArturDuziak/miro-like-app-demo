@@ -9,6 +9,7 @@ declare global {
       tokenInfo?: {
         refreshed: boolean;
       };
+      prisma: import('@prisma/client').PrismaClient;
     }
   }
 }

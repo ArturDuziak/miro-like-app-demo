@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { getGoogleOAuthUrl } from '../utils/getGoogleUrl'
 
 // eslint-disable-next-line react/prop-types
 export function Login({ onSubmit }) {
@@ -25,6 +26,10 @@ export function Login({ onSubmit }) {
                     onChange={e => setRoomId(e.target.value)} />
                 <input type="submit" />
             </form>
+            <b>Login to google</b>
+            <a href={getGoogleOAuthUrl()}>
+                Login with Google
+            </a>
         </>
     )
 }
