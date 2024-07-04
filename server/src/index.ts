@@ -3,6 +3,7 @@ import websockets from './websockets';
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
 import routes from './routes';
+import { logger } from './middleware/logger';
 
 dotenv.config();
 
@@ -17,6 +18,8 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json());
+
+app.use(logger);
 
 const server = app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}\n\n`);
